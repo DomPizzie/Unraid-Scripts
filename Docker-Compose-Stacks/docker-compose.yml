@@ -1,0 +1,172 @@
+services:
+
+  # Radarr: A fork of Sonarr to work with movies. Automatically monitors and downloads movies, handles quality upgrades, and manages your movie collection with an elegant web interface.
+  # https://docs.linuxserver.io/images/docker-radarr/
+  # https://trash-guides.info/Radarr/
+  # https://wiki.servarr.com/radarr/quick-start-guide
+  radarr:
+    image: lscr.io/linuxserver/radarr:latest
+    container_name: ${CONTAINER_PREFIX}radarr
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      - UMASK=${UMASK}
+      - HOST_OS=${HOST_OS}
+      - HOST_HOSTNAME=${HOST_HOSTNAME}
+    volumes:
+      - ${CONFIG_PATH}/radarr:/config
+      - ${DATA_PATH}:/data
+    ports:
+      - 7878:7878
+    restart: ${RESTART_POLICY}
+
+  # Sonarr: Smart PVR for usenet and bittorrent users. Monitors multiple RSS feeds for new TV show episodes, automatically grabbing, sorting, and renaming them.
+  # https://docs.linuxserver.io/images/docker-sonarr/
+  # https://trash-guides.info/Sonarr/
+  # https://wiki.servarr.com/sonarr/quick-start-guide
+  sonarr:
+    image: lscr.io/linuxserver/sonarr:latest
+    container_name: ${CONTAINER_PREFIX}sonarr
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      - UMASK=${UMASK}
+      - HOST_OS=${HOST_OS}
+      - HOST_HOSTNAME=${HOST_HOSTNAME}
+    volumes:
+      - ${CONFIG_PATH}/sonarr:/config
+      - ${DATA_PATH}:/data
+    ports:
+      - 8989:8989
+    restart: ${RESTART_POLICY}
+
+  # Prowlarr: A powerful indexer manager/proxy built on the arr stack. Seamlessly integrates with Sonarr, Radarr, Lidarr, and Readarr, supporting both Torrent Trackers and Usenet Indexers with centralized management.
+  # https://docs.linuxserver.io/images/docker-prowlarr/
+  # https://trash-guides.info/Prowlarr/
+  # https://wiki.servarr.com/prowlarr/quick-start-guide
+  prowlarr:
+    image: lscr.io/linuxserver/prowlarr:latest
+    container_name: ${CONTAINER_PREFIX}prowlarr
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      - UMASK=${UMASK}
+      - HOST_OS=${HOST_OS}
+      - HOST_HOSTNAME=${HOST_HOSTNAME}
+    volumes:
+      - ${CONFIG_PATH}/prowlarr:/config
+    ports:
+      - 9696:9696
+    restart: ${RESTART_POLICY}
+
+  # qBittorrent: A cross-platform BitTorrent client with an integrated web interface.
+  # https://docs.linuxserver.io/images/docker-qbittorrent/
+  # https://trash-guides.info/Downloaders/qBittorrent/
+  qbittorrent:
+    image: lscr.io/linuxserver/qbittorrent:latest
+    container_name: ${CONTAINER_PREFIX}qbittorrent
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      - UMASK=${UMASK}
+      - WEBUI_PORT=${QBIT_WEB_PORT}
+      - TORRENTING_PORT=${QBIT_TORRENT_PORT}
+      # Optional: Add a custom UI for qBittorrent. Only enable after stack is fully-functioning.
+      #- DOCKER_MODS=ghcr.io/vuetorrent/vuetorrent-lsio-mod:latest
+      - HOST_OS=${HOST_OS}
+      - HOST_HOSTNAME=${HOST_HOSTNAME}
+    network_mode: service:gluetun
+    volumes:
+      - ${CONFIG_PATH}/qbittorrent:/config
+      - ${DATA_PATH}torrents:/data/torrents
+    #ports:
+    #  - 8081:${QBIT_WEB_PORT}
+    #  - ${QBIT_TORRENT_PORT}:${QBIT_TORRENT_PORT}
+    #  - ${QBIT_TORRENT_PORT}:${QBIT_TORRENT_PORT}/udp
+    restart: ${RESTART_POLICY}
+
+  # SABnzbd: Free and easy binary newsreader, makes downloading from Usenet easy by automating the process.
+  # NOTE: After first boot, you may need to modify 'sabnzbd.ini' on the host and change 'port=8080' -> 'port=8081'. Restart container. https://discourse.linuxserver.io/t/any-way-to-change-internal-port-of-linuxserver-sabnzbd/7994/4
+  # NOTE: After first boot, you may need to modify 'sabnzbd.ini' to accept your local URLs
+  # https://docs.linuxserver.io/images/docker-sabnzbd/
+  # https://trash-guides.info/Downloaders/SABnzbd/
+  sabnzbd:
+    image: lscr.io/linuxserver/sabnzbd:latest
+    container_name: ${CONTAINER_PREFIX}sabnzbd
+    environment:
+      - TZ=${TZ}
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - UMASK=${UMASK}
+      - HOST_OS=${HOST_OS}
+      - HOST_HOSTNAME=${HOST_HOSTNAME}
+    network_mode: service:gluetun
+    volumes:
+      - ${CONFIG_PATH}/sabnzbd:/config
+      - ${DATA_PATH}usenet:/data/usenet
+    #ports:
+    #  - 8080:8080
+    restart: ${RESTART_POLICY}
+
+  # FlareSolverr: Proxy server to bypass Cloudflare and DDoS-GUARD protection, used by indexers to scrape content from protected sites.
+  # https://github.com/FlareSolverr/FlareSolverr
+  # https://trash-guides.info/Prowlarr/prowlarr-setup-flaresolverr/
+  # https://wiki.servarr.com/en/prowlarr/settings#flaresolverr-proxy-settings
+  flaresolverr:
+    image: ghcr.io/flaresolverr/flaresolverr:latest
+    container_name: ${CONTAINER_PREFIX}flaresolverr
+    environment:
+      - TZ=${TZ}
+      - LOG_LEVEL=info
+      - HOST_OS=${HOST_OS}
+      - HOST_HOSTNAME=${HOST_HOSTNAME}
+    ports:
+      - 8191:8191
+    restart: ${RESTART_POLICY}
+
+  # Gluetun: VPN provider
+  # https://github.com/qdm12/gluetun-wiki?tab=readme-ov-file#readme
+  # https://wiki.servarr.com/en/vpn
+  gluetun:
+    image: qmcgaw/gluetun:v3
+    container_name: ${CONTAINER_PREFIX}gluetun
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    ports:
+      #- 8888:8888/tcp # HTTP proxy
+      #- 8388:8388/tcp # Shadowsocks
+      #- 8388:8388/udp # Shadowsocks
+      #- 9999:9999 # Healthchecks
+      #- 9696:9696 # prowlarr
+      - 8080:8080 # sabnzbd
+      #- ${QBIT_TORRENT_PORT}:${QBIT_TORRENT_PORT}/tcp # qBitTorrent
+      #- ${QBIT_TORRENT_PORT}:${QBIT_TORRENT_PORT}/udp # qBitTorrent
+      - 8081:${QBIT_WEB_PORT} # qBitWebUI
+    volumes:
+      - ${CONFIG_PATH}/gluetun:/gluetun
+    environment:
+      - VPN_SERVICE_PROVIDER=${VPN_PROVIDER}
+      - VPN_TYPE=${VPN_TYPE}
+      - OPENVPN_USER=${VPN_USER}
+      - OPENVPN_PASSWORD=${VPN_PASSWORD}
+      - SERVER_REGIONS=${VPN_REGION}
+      - PORT_FORWARD_ONLY=true
+      - VPN_PORT_FORWARDING=on
+      - BLOCK_SURVEILLANCE=on
+      - DNS_UPSTREAM_RESOLVERS=cloudflare,quad9
+      - UPDATER_PERIOD=48h
+      - PUBLICIP_FILE=/gluetun/ip
+      - TZ=${TZ}
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - UMASK=${UMASK}
+      - HOST_OS=${HOST_OS}
+      - HOST_HOSTNAME=${HOST_HOSTNAME}
+    restart: ${RESTART_POLICY}
+

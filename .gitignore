@@ -205,3 +205,34 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# --- Secrets and Credentials ---
+# Never commit your passwords, tokens, or keys
+.env
+*.env
+secrets/
+*.pem
+*.key
+
+# --- Docker & Compose ---
+# Ignore local overrides and data volumes
+docker-compose.override.yml
+data/
+db_data/
+logs/
+*.log
+
+# --- Unraid & OS Specific ---
+# Ignore metadata files created by network shares (SMB/NFS)
+.DS_Store
+Thumbs.db
+.AppleDouble
+.LSOverride
+._*
+
+# --- Scripting & Temporary Files ---
+# Ignore temporary swap files and local backups
+*.swp
+*.tmp
+*.bak
+*.old

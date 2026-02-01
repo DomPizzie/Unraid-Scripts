@@ -82,7 +82,7 @@ services:
     network_mode: service:gluetun
     volumes:
       - ${CONFIG_PATH}/qbittorrent:/config
-      - ${DATA_PATH}torrents:/data/torrents
+      - ${DATA_PATH}/torrents:/data/torrents
     #ports:
     #  - 8081:${QBIT_WEB_PORT}
     #  - ${QBIT_TORRENT_PORT}:${QBIT_TORRENT_PORT}
@@ -107,7 +107,7 @@ services:
     network_mode: service:gluetun
     volumes:
       - ${CONFIG_PATH}/sabnzbd:/config
-      - ${DATA_PATH}usenet:/data/usenet
+      - ${DATA_PATH}/usenet:/data/usenet
     #ports:
     #  - 8080:8080
     restart: ${RESTART_POLICY}
